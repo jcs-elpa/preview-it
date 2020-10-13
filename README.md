@@ -6,17 +6,13 @@
 
 ## Features
 
-### Preview File
+| Preview File | Preview Image |
+|:---|:---|
+| <img src="./etc/file.png" width="450" height="200"/> | <img src="./etc/image.png" width="450" height="200"/> |
 
-<img src="./etc/file.png"/>
-
-### Preview Image
-
-<img src="./etc/image.png"/>
-
-### Preview Url
-
-<img src="./etc/url.png"/>
+| Preview Url |
+|:---|
+| <img src="./etc/url.png" width="450" height="200"/> |
 
 ## Usage
 
