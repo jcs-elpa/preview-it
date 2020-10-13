@@ -33,6 +33,7 @@
 ;;; Code:
 
 (require 'ffap)
+(require 'image-mode)
 
 (defgroup preview-it nil
   "Preview anything at point."
@@ -49,16 +50,6 @@
 (defcustom preview-it-delay 0.4
   "Seconds delay to show preview."
   :type 'float
-  :group 'preview-it)
-
-(defcustom preview-it-max-width 150
-  "Frame maximum width."
-  :type 'integer
-  :group 'preview-it)
-
-(defcustom preview-it-max-height 13
-  "Frame maximum height."
-  :type 'integer
   :group 'preview-it)
 
 (defconst preview-it--buffer-name "*preview-it*"
@@ -173,27 +164,30 @@
     (with-current-buffer preview-it--buffer-name
       (setq preview-it--max-column (preview-it--max-col)
             preview-it--max-line (preview-it--max-line)))
-    (setq display-frame-width (* fcw preview-it--max-column)
-          display-frame-height (* fch preview-it--max-line))
-    (unless width (setq width (preview-it--calculated-width)))
-    (unless height (setq height (preview-it--calculated-height)))
-    ;; Calculate position X
+    (if width
+        (setq display-frame-width width)
+      (setq display-frame-width (* fcw preview-it--max-column))
+      (setq width (preview-it--calculated-width)))
+    (if height
+        (setq display-frame-height height)
+      (setq display-frame-height (* fch preview-it--max-line))
+      (setq height (preview-it--calculated-height)))
     (unless pixel-x
-      (setq cur-col (+ 2 (round cur-col))
-            pixel-x (+ (* fcw cur-col) win-left))
-      (when (< vis-frame-width display-frame-width)
-        (setq diff-w (- display-frame-width vis-frame-width)
-              pixel-x (max (- pixel-x diff-w) 0))))
+      (setq cur-col (+ 2 cur-col)
+            pixel-x (+ (* fcw cur-col) win-left)))
+    (unless pixel-y (setq pixel-y (+ (* fch cur-ln) win-top)))
+    ;; Calculate position X
+    (when (< vis-frame-width display-frame-width)
+      (setq diff-w (- display-frame-width vis-frame-width)
+            pixel-x (max (- pixel-x diff-w) 0)))
     ;; Calculate position Y
-    (unless pixel-y
-      (setq pixel-y (+ (* fch cur-ln) win-top))
-      (when (< vis-frame-height display-frame-height)
-        (setq diff-h (- display-frame-height vis-frame-height)
-              pixel-y (max (- pixel-y diff-h) 0))))
-    (set-frame-parameter preview-it--frame 'left pixel-x)
-    (set-frame-parameter preview-it--frame 'top pixel-y)
-    (set-frame-parameter preview-it--frame 'width width)
-    (set-frame-parameter preview-it--frame 'height height)
+    (when (< vis-frame-height display-frame-height)
+      (setq diff-h (- display-frame-height vis-frame-height)
+            pixel-y (max (- pixel-y diff-h) 0)))
+    (set-frame-parameter preview-it--frame 'left (round pixel-x))
+    (set-frame-parameter preview-it--frame 'top (round pixel-y))
+    (set-frame-parameter preview-it--frame 'width (round width))
+    (set-frame-parameter preview-it--frame 'height (round height))
     (preview-it--frame-visible t)))
 
 (defun preview-it--frame-visible (vis)
@@ -204,13 +198,11 @@
 
 (defun preview-it--calculated-width ()
   "Calculate window width from current context."
-  (min (frame-width) preview-it-max-width preview-it--max-column))
+  (min (frame-width) preview-it--max-column))
 
 (defun preview-it--calculated-height ()
   "Calculate window height from current context."
-  preview-it--max-line
-  ;;(min (frame-height) preview-it-max-height preview-it--max-line)
-  )
+  (min (frame-height) preview-it--max-line))
 
 ;;; Core
 
@@ -222,7 +214,8 @@
 (defun preview-it ()
   "Preview thing at point."
   (interactive)
-  (let ((info (preview-it--get-info)) show-frame-p)
+  (let ((info (preview-it--get-info)) show-frame-p
+        x y width height)
     (when info
       (preview-it--make-frame)
       (with-selected-frame preview-it--frame
@@ -232,19 +225,21 @@
                (cond ((preview-it--is-contain-list-string-regexp
                        preview-it--image-extensions info)
                       (insert-image-file info)
-                      ;; TODO: Get image size...
-                      (message "%s" (image-size nil))
-                      (image-mode-fit-frame preview-it--frame))
+                      (let ((img-size (ignore-errors (image-size (image-get-display-property) :pixels))))
+                        (when img-size
+                          (setq width (/ (car img-size) (frame-char-width))
+                                height (/ (cdr img-size) (frame-char-height))))))
                      (t
-                      (insert-file-contents info)
-                      (setq show-frame-p t))))
+                      (insert-file-contents info)))
+               (setq show-frame-p t))
               ((url-p info)  ; TODO: The function `url-p' isn't working...
                ;; TODO: Implement url buffer.
                (setq show-frame-p t))))
-      (when show-frame-p (preview-it--move-frame)))))
+      (when show-frame-p (preview-it--move-frame x y width height)))))
 
 (defun preview-it--start-preview ()
   "Trigger to start previewing."
+  (preview-it--frame-visible nil)
   (preview-it--kill-timer preview-it--timer)
   (setq preview-it--timer (run-with-timer preview-it-delay nil #'preview-it)))
 
