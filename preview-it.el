@@ -246,6 +246,8 @@
   (let (x y width height)
     (preview-it--with-preview-buffer
       (insert data)
+      ;; TODO: The check here is fragile. Need a much dedicated method to
+      ;; detect html string.
       (when (string-match-p "<!doctype html>" data)
         (shr-render-region (point-min) (point-max))))
     (preview-it--move-frame x y width height)))
@@ -281,6 +283,7 @@
                     (preview-it--with-preview-buffer
                       (insert-file-contents info)))
                    (t (setq show-frame-p nil))))
+            ;; TODO: Not sure if there are other cases.
             ((string-match-p "http[s]*://" info)
              (setq preview-it--url-request
                    (request
