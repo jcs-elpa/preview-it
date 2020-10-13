@@ -10,6 +10,8 @@
 
 ### Preview Image
 
+### Preview Url
+
 ## Usage
 
 You can enable this feature by the following command. So it will work every time
