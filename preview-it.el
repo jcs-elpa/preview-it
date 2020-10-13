@@ -56,7 +56,7 @@
   "Name of the preview buffer.")
 
 (defvar preview-it--image-extensions
-  '(".jpg" ".png" ".jpeg" ".gif" ".bmp" ".ico")
+  '(".jpg" ".png" ".jpeg" ".gif" ".bmp")
   "List of image extensions.")
 
 (defvar preview-it--frame nil
@@ -106,6 +106,13 @@
 (defun preview-it--kill-timer (timer)
   "Safe way to kill TIMER."
   (when (timerp timer) (cancel-timer timer)))
+
+(defun preview-it--text-file-p (filename)
+  "Return non-nil if FILENAME is a text file; not binary file."
+  (let ((inhibit-message t)message-log-max)
+    (with-current-buffer (find-file-noselect filename :no-warn)
+      (prog1 (not (eq buffer-file-coding-system 'no-conversion))
+        (kill-buffer)))))
 
 (defun preview-it--max-col ()
   "Return maximum column in buffer."
@@ -222,16 +229,19 @@
         (erase-buffer)
         (setq mode-line-format nil)
         (cond ((jcs-is-file-p info)
-               (cond ((preview-it--is-contain-list-string-regexp
-                       preview-it--image-extensions info)
-                      (insert-image-file info)
+               (setq show-frame-p t)
+               (cond ((and (preview-it--is-contain-list-string-regexp
+                            preview-it--image-extensions info)
+                           (ignore-errors (insert-image-file info)))
                       (let ((img-size (ignore-errors (image-size (image-get-display-property) :pixels))))
                         (when img-size
                           (setq width (/ (car img-size) (frame-char-width))
                                 height (/ (cdr img-size) (frame-char-height))))))
+                     ;; TODO: This method is very slow, need to find other replacement.
+                     ((preview-it--text-file-p info)
+                      (insert-file-contents info))
                      (t
-                      (insert-file-contents info)))
-               (setq show-frame-p t))
+                      (setq show-frame-p nil))))
               ((url-p info)  ; TODO: The function `url-p' isn't working...
                ;; TODO: Implement url buffer.
                (setq show-frame-p t))))

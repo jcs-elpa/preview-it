@@ -4,6 +4,12 @@
 # preview-it
 > Preview anything at point.
 
+## Features
+
+### Preview File
+
+### Preview Image
+
 ## Contribution
 
 If you would like to contribute to this project, you may either
