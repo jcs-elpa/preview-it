@@ -6,7 +6,7 @@
 ;; Author: Shen, Jen-Chieh <jcs090218@gmail.com>
 ;; Description: Preview anything at point.
 ;; Keyword: preview image path file
-;; Version: 0.0.1
+;; Version: 1.0.0
 ;; Package-Requires: ((emacs "26.1") (request "0.3.0"))
 ;; URL: https://github.com/jcs-elpa/preview-it
 
