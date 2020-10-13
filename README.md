@@ -10,9 +10,9 @@
 |:---|:---|
 | <img src="./etc/file.png"/> | <img src="./etc/image.png"/> |
 
-| Preview Url |
-|:---|
-| <img src="./etc/url.png"/> |
+| Preview Url | |
+|:---|:---|
+| <img src="./etc/url.png"/> | |
 
 ## Usage
 
