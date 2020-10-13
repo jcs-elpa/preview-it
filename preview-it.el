@@ -207,7 +207,6 @@
         (setq cur-col (+ 2 cur-col)
               pixel-x (+ (* fcw cur-col) win-left)))
       (unless pixel-y (setq pixel-y (+ (* fch cur-ln) win-top)))
-      (message "pixel-y: %s" pixel-y)
       ;; Calculate position X
       (when (< vis-frame-width display-frame-width)
         (setq diff-w (- display-frame-width vis-frame-width)
@@ -216,7 +215,6 @@
       (when (< vis-frame-height display-frame-height)
         (setq diff-h (- display-frame-height vis-frame-height)
               pixel-y (max (- pixel-y diff-h) 0)))
-      (message "pixel-y: %s" pixel-y)
       (set-frame-parameter preview-it--frame 'left (round pixel-x))
       (set-frame-parameter preview-it--frame 'top (round pixel-y))
       (set-frame-parameter preview-it--frame 'width (round width))
@@ -258,6 +256,8 @@
   "Return possible preview information."
   (or (ffap-url-at-point) (ffap-file-at-point)))
 
+;; ./recipes/preview-it
+
 ;;;###autoload
 (defun preview-it ()
   "Preview thing at point."
@@ -281,7 +281,7 @@
                     (preview-it--with-preview-buffer
                       (insert-file-contents info)))
                    (t (setq show-frame-p nil))))
-            (t
+            ((string-match-p "http[s]*://" info)
              (setq preview-it--url-request
                    (request
                      info
