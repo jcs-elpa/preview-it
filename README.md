@@ -4,6 +4,8 @@
 # preview-it
 > Preview anything at point.
 
+Preview `file`, `image`, and `website` by moving cursor on top of target.
+
 ## Features
 
 This package current supports viewing these items.
