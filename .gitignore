@@ -1,0 +1,9 @@
+# ignore these directories.
+/.git
+/recipes
+/test
+preview-it-pkg.el
+preview-it-autoloads.el
+
+# ignore generated files.
+*.elc
