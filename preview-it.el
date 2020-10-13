@@ -64,6 +64,10 @@
 (defconst preview-it--buffer-name "*preview-it*"
   "Name of the preview buffer.")
 
+(defvar preview-it--image-extensions
+  '(".jpg" ".png" ".jpeg" ".gif" ".bmp" ".ico")
+  "List of image extensions.")
+
 (defvar preview-it--frame nil
   "Frame use to display preview buffer.")
 
@@ -103,6 +107,10 @@
   "Frame parameters used to create the frame.")
 
 ;;; Util
+
+(defun preview-it--is-contain-list-string-regexp (in-list in-str)
+  "Check if IN-STR contain in any string in the IN-LIST."
+  (cl-some (lambda (lb-sub-str) (string-match-p lb-sub-str in-str)) in-list))
 
 (defun preview-it--kill-timer (timer)
   "Safe way to kill TIMER."
@@ -214,24 +222,29 @@
 (defun preview-it ()
   "Preview thing at point."
   (interactive)
-  (let ((info (preview-it--get-info))
-        show-frame-p)
+  (let ((info (preview-it--get-info)) show-frame-p)
     (when info
+      (preview-it--make-frame)
       (with-selected-frame preview-it--frame
         (erase-buffer)
         (setq mode-line-format nil)
-        (cond ((file-exists-p info)
-               (insert-file-contents info)
-               (setq show-frame-p t))
+        (cond ((jcs-is-file-p info)
+               (cond ((preview-it--is-contain-list-string-regexp
+                       preview-it--image-extensions info)
+                      (insert-image-file info)
+                      ;; TODO: Get image size...
+                      (message "%s" (image-size nil))
+                      (image-mode-fit-frame preview-it--frame))
+                     (t
+                      (insert-file-contents info)
+                      (setq show-frame-p t))))
               ((url-p info)  ; TODO: The function `url-p' isn't working...
                ;; TODO: Implement url buffer.
                (setq show-frame-p t))))
-      ;; TODO Implement image!
       (when show-frame-p (preview-it--move-frame)))))
 
 (defun preview-it--start-preview ()
   "Trigger to start previewing."
-  (preview-it--frame-visible nil)
   (preview-it--kill-timer preview-it--timer)
   (setq preview-it--timer (run-with-timer preview-it-delay nil #'preview-it)))
 
