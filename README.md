@@ -8,9 +8,15 @@
 
 ### Preview File
 
+<img src="./etc/file.png"/>
+
 ### Preview Image
 
+<img src="./etc/image.png"/>
+
 ### Preview Url
+
+<img src="./etc/url.png"/>
 
 ## Usage
 
