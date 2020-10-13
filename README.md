@@ -6,6 +6,12 @@
 
 ## Features
 
+This package current supports viewing these items.
+
+* File (absolute/relative)
+* Image
+* Url/Link
+
 | Preview File | Preview Image |
 |:---|:---|
 | <img src="./etc/file.png" width="450" height="200"/> | <img src="./etc/image.png" width="450" height="200"/> |
