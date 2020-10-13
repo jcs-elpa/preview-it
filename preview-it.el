@@ -51,24 +51,30 @@
   :type 'float
   :group 'preview-it)
 
-(defcustom preview-it-width 300
-  "Frame width."
+(defcustom preview-it-max-width 150
+  "Frame maximum width."
   :type 'integer
   :group 'preview-it)
 
-(defcustom preview-it-height 300
-  "Frame height."
+(defcustom preview-it-max-height 13
+  "Frame maximum height."
   :type 'integer
   :group 'preview-it)
 
-(defconst preview-it--frame-name "*preview-it*"
-  "Name of the preview frame.")
+(defconst preview-it--buffer-name "*preview-it*"
+  "Name of the preview buffer.")
 
 (defvar preview-it--frame nil
   "Frame use to display preview buffer.")
 
 (defvar preview-it--timer nil
   "Display timer after hovering.")
+
+(defvar preview-it--max-column nil
+  "Record the maximum column, which represent as buffer maximum width.")
+
+(defvar preview-it--max-line nil
+  "Record the maximum line, which represent as buffer maximum height.")
 
 (defvar preview-it--frame-parameters
   '((left . -1)
@@ -102,40 +108,80 @@
   "Safe way to kill TIMER."
   (when (timerp timer) (cancel-timer timer)))
 
+(defun preview-it--max-col ()
+  "Return maximum column in buffer."
+  (let ((max 0))
+    (save-excursion
+      (goto-char (point-min))
+      (while (not (eobp))
+        (end-of-line)
+        (setq max (max (current-column) max))
+        (forward-line 1)))
+    max))
+
+(defun preview-it--max-line ()
+  "Return maximum line in buffer."
+  (line-number-at-pos (point-max) t))
+
+;;; Frame
+
 (defun preview-it--make-frame ()
   "Create frame if it hasn't created."
   (unless preview-it--frame
     (let* ((after-make-frame-functions nil)
            (before-make-frame-hook nil)
-           (buffer (get-buffer preview-it--frame-name))
+           (buffer (get-buffer-create preview-it--buffer-name))
            (params (append preview-it--frame-parameters
-                           `((name . ,preview-it--frame-name)
+                           `((name . "")
                              (default-minibuffer-frame . ,(selected-frame))
                              (minibuffer . ,(minibuffer-window))
                              (left-fringe . 0)
                              (right-fringe . 0)
-                             (width . ,preview-it-width)
-                             (height . ,preview-it-height)
                              (cursor-type . nil)
-                             (lsp-ui-doc--no-focus . t)
                              (background-color . ,(face-background 'preview-it-background nil t)))))
            (window (display-buffer-in-child-frame
                     buffer
-                    `((child-frame-parameters . ,params))))
-           (frame (window-frame window)))
-      (setq preview-it--frame (make-frame params))
-      (set-window-dedicated-p window t)
-      )))
+                    `((child-frame-parameters . ,params)))))
+      (setq preview-it--frame (window-frame window))
+      (set-window-dedicated-p window t))))
 
 (defun preview-it--move-frame (&optional x y width height)
   "Move the frame to X, Y, WIDTH and HEIGHT position."
   (preview-it--make-frame)
-  (let ((abs-pixel-pos (window-absolute-pixel-position))
-        (pixel-x x) (pixel-y y))
-    (unless pixel-x (setq pixel-x (car abs-pixel-pos)))
-    (unless pixel-y (setq pixel-y (+ (cdr abs-pixel-pos) (frame-char-height))))
+  (let* ((fcw (frame-char-width)) (fch (frame-char-height))
+         (pixel-x x) (pixel-y y)
+         (cur-ln (line-number-at-pos)) (cur-col (current-column))
+         (root-frame-width (* fcw (frame-width)))
+         (root-frame-height (* fch (frame-height)))
+         (vis-frame-width (* fcw cur-col))
+         (vis-frame-height (- root-frame-height (* fch cur-ln)))
+         display-frame-width display-frame-height
+         diff-h diff-w
+         (abs-pixel-pos (save-excursion
+                          (goto-char (point-min))
+                          (window-absolute-pixel-position)))
+         (win-left (- (car abs-pixel-pos) fcw))
+         (win-top (- (cdr abs-pixel-pos) fch)))
+    (with-current-buffer preview-it--buffer-name
+      (setq preview-it--max-column (preview-it--max-col)
+            preview-it--max-line (preview-it--max-line)))
+    (setq display-frame-width (* fcw preview-it--max-column)
+          display-frame-height (* fch preview-it--max-line))
+    (unless width (setq width (preview-it--calculated-width)))
+    (unless height (setq height (preview-it--calculated-height)))
+    (unless pixel-x
+      (setq cur-col (+ 2 (round cur-col))
+            pixel-x (+ (* fcw cur-col) win-left))
+      )
+    (unless pixel-y
+      (setq pixel-y (+ (* fch cur-ln) win-top))
+      (when (< vis-frame-height display-frame-height)
+        (setq diff-h (- display-frame-height vis-frame-height)
+              pixel-y (max (- pixel-y diff-h) 0))))
     (set-frame-parameter preview-it--frame 'left pixel-x)
     (set-frame-parameter preview-it--frame 'top pixel-y)
+    (set-frame-parameter preview-it--frame 'width width)
+    (set-frame-parameter preview-it--frame 'height height)
     (preview-it--frame-visible t)))
 
 (defun preview-it--frame-visible (vis)
@@ -143,6 +189,16 @@
   (when preview-it--frame
     (if vis (make-frame-visible preview-it--frame)
       (make-frame-invisible preview-it--frame))))
+
+(defun preview-it--calculated-width ()
+  "Calculate window width from current context."
+  (min (frame-width) preview-it-max-width preview-it--max-column))
+
+(defun preview-it--calculated-height ()
+  "Calculate window height from current context."
+  preview-it--max-line
+  ;;(min (frame-height) preview-it-max-height preview-it--max-line)
+  )
 
 ;;; Core
 
@@ -154,37 +210,43 @@
 (defun preview-it ()
   "Preview thing at point."
   (interactive)
-  (when (framep preview-it--frame)
-    (delete-frame preview-it--frame)
-    (setq preview-it--frame nil))
-  (let ((info (preview-it--get-info)))
+  (let ((info (preview-it--get-info))
+        show-frame-p)
     (when info
-      (preview-it--move-frame)
       (with-selected-frame preview-it--frame
         (erase-buffer)
+        (setq mode-line-format nil)
         (cond ((file-exists-p info)
-               (insert-file-contents info))
+               (insert-file-contents info)
+               (setq show-frame-p t))
               ((url-p info)
 
-               )))
+               (setq show-frame-p t))))
+      (when show-frame-p (preview-it--move-frame))
       )))
 
 (defun preview-it--start-preview ()
-  "Trigger for ready to preview."
+  "Trigger to start previewing."
   (preview-it--frame-visible nil)
   (preview-it--kill-timer preview-it--timer)
-  (setq preview-it--timer (run-with-timer preview-it-delay nil
-                                          #'preview-it)))
+  (setq preview-it--timer (run-with-timer preview-it-delay nil #'preview-it)))
+
+(defun preview-it--stop-preview ()
+  "Trigger to stop previewing."
+  (preview-it--frame-visible nil))
 
 ;;; Entry
 
 (defun preview-it--enable ()
   "Enable `preview-it-mode'."
+  (add-hook 'pre-command-hook #'preview-it--stop-preview nil t)
   (add-hook 'post-command-hook #'preview-it--start-preview nil t))
 
 (defun preview-it--disable ()
   "Disable `preview-it-mode'."
-  (remove-hook 'post-command-hook #'preview-it--start-preview t))
+  (remove-hook 'pre-command-hook #'preview-it--stop-preview t)
+  (remove-hook 'post-command-hook #'preview-it--start-preview t)
+  (preview-it--stop-preview))
 
 ;;;###autoload
 (define-minor-mode preview-it-mode
