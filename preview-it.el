@@ -324,5 +324,14 @@
   :group 'preview-it
   (if preview-it-mode (preview-it--enable) (preview-it--disable)))
 
+(defun preview-it--turn-on-preview-it-mode ()
+  "Turn on the 'preview-it-mode'."
+  (preview-it-mode 1))
+
+;;;###autoload
+(define-globalized-minor-mode global-preview-it-mode
+  preview-it-mode preview-it--turn-on-preview-it-mode
+  :require 'preview-it)
+
 (provide 'preview-it)
 ;;; preview-it.el ends here
