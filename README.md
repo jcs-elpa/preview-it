@@ -10,6 +10,15 @@
 
 ### Preview Image
 
+## Usage
+
+You can enable this feature by the following command. So it will work every time
+your cursor is hovering anything that can be preview.
+
+```
+M-x preview-it-mode
+```
+
 ## Contribution
 
 If you would like to contribute to this project, you may either
