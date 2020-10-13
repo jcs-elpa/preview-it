@@ -7,7 +7,7 @@
 ;; Description: Preview anything at point.
 ;; Keyword: preview image path file
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "26.1"))
+;; Package-Requires: ((emacs "26.1") (request "0.3.0"))
 ;; URL: https://github.com/jcs-elpa/preview-it
 
 ;; This file is NOT part of GNU Emacs.
@@ -32,8 +32,11 @@
 
 ;;; Code:
 
+(require 'cl-lib)
 (require 'ffap)
 (require 'image-mode)
+
+(require 'request)
 
 (defgroup preview-it nil
   "Preview anything at point."
@@ -70,6 +73,9 @@
 
 (defvar preview-it--max-line nil
   "Record the maximum line, which represent as buffer maximum height.")
+
+(defvar preview-it--url-request nil
+  "Request when browsing URL.")
 
 (defvar preview-it--frame-parameters
   '((left . -1)
@@ -211,6 +217,20 @@
   "Calculate window height from current context."
   (min (frame-height) preview-it--max-line))
 
+;;; Url
+
+(defun preview-it--reset-request ()
+  "Reset URL request."
+  (when preview-it--url-request (request-abort preview-it--url-request)))
+
+(cl-defun preview-it--receive-data (&key data &allow-other-keys)
+  "Callback after receiving URL DATA."
+  (with-current-buffer preview-it--buffer-name
+    (erase-buffer)
+    (insert data)
+    (shr-render-region (point-min) (point-max))
+    (preview-it--move-frame)))
+
 ;;; Core
 
 (defun preview-it--get-info ()
@@ -242,14 +262,19 @@
                       (insert-file-contents info))
                      (t
                       (setq show-frame-p nil))))
-              ((url-p info)  ; TODO: The function `url-p' isn't working...
-               ;; TODO: Implement url buffer.
-               (setq show-frame-p t))))
+              (t
+               (setq preview-it--url-request
+                     (request
+                       info
+                       :type "GET"
+                       :parser 'buffer-string
+                       :success 'preview-it--receive-data)))))
       (when show-frame-p (preview-it--move-frame x y width height)))))
 
 (defun preview-it--start-preview ()
   "Trigger to start previewing."
   (preview-it--frame-visible nil)
+  (preview-it--reset-request)
   (preview-it--kill-timer preview-it--timer)
   (setq preview-it--timer (run-with-timer preview-it-delay nil #'preview-it)))
 
