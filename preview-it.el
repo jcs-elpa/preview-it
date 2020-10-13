@@ -7,7 +7,7 @@
 ;; Description: Preview anything at point.
 ;; Keyword: preview image path file
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "24.3"))
+;; Package-Requires: ((emacs "26.1"))
 ;; URL: https://github.com/jcs-elpa/preview-it
 
 ;; This file is NOT part of GNU Emacs.
@@ -149,19 +149,19 @@
   "Move the frame to X, Y, WIDTH and HEIGHT position."
   (preview-it--make-frame)
   (let* ((fcw (frame-char-width)) (fch (frame-char-height))
-         (pixel-x x) (pixel-y y)
-         (cur-ln (line-number-at-pos)) (cur-col (current-column))
-         (root-frame-width (* fcw (frame-width)))
-         (root-frame-height (* fch (frame-height)))
-         (vis-frame-width (* fcw cur-col))
-         (vis-frame-height (- root-frame-height (* fch cur-ln)))
-         display-frame-width display-frame-height
-         diff-h diff-w
          (abs-pixel-pos (save-excursion
                           (goto-char (point-min))
                           (window-absolute-pixel-position)))
          (win-left (- (car abs-pixel-pos) fcw))
-         (win-top (- (cdr abs-pixel-pos) fch)))
+         (win-top (- (cdr abs-pixel-pos) fch))
+         (pixel-x x) (pixel-y y)
+         (cur-ln (line-number-at-pos)) (cur-col (current-column))
+         (root-frame-width (* fcw (frame-width)))
+         (root-frame-height (* fch (frame-height)))
+         (vis-frame-width (- root-frame-width (+ win-left (* fcw cur-col))))
+         (vis-frame-height (- root-frame-height (+ win-top (* fch cur-ln))))
+         display-frame-width display-frame-height
+         diff-w diff-h)
     (with-current-buffer preview-it--buffer-name
       (setq preview-it--max-column (preview-it--max-col)
             preview-it--max-line (preview-it--max-line)))
@@ -169,10 +169,14 @@
           display-frame-height (* fch preview-it--max-line))
     (unless width (setq width (preview-it--calculated-width)))
     (unless height (setq height (preview-it--calculated-height)))
+    ;; Calculate position X
     (unless pixel-x
       (setq cur-col (+ 2 (round cur-col))
             pixel-x (+ (* fcw cur-col) win-left))
-      )
+      (when (< vis-frame-width display-frame-width)
+        (setq diff-w (- display-frame-width vis-frame-width)
+              pixel-x (max (- pixel-x diff-w) 0))))
+    ;; Calculate position Y
     (unless pixel-y
       (setq pixel-y (+ (* fch cur-ln) win-top))
       (when (< vis-frame-height display-frame-height)
@@ -219,11 +223,11 @@
         (cond ((file-exists-p info)
                (insert-file-contents info)
                (setq show-frame-p t))
-              ((url-p info)
-
+              ((url-p info)  ; TODO: The function `url-p' isn't working...
+               ;; TODO: Implement url buffer.
                (setq show-frame-p t))))
-      (when show-frame-p (preview-it--move-frame))
-      )))
+      ;; TODO Implement image!
+      (when show-frame-p (preview-it--move-frame)))))
 
 (defun preview-it--start-preview ()
   "Trigger to start previewing."
@@ -238,12 +242,12 @@
 ;;; Entry
 
 (defun preview-it--enable ()
-  "Enable `preview-it-mode'."
+  "Enable 'preview-it-mode'."
   (add-hook 'pre-command-hook #'preview-it--stop-preview nil t)
   (add-hook 'post-command-hook #'preview-it--start-preview nil t))
 
 (defun preview-it--disable ()
-  "Disable `preview-it-mode'."
+  "Disable 'preview-it-mode'."
   (remove-hook 'pre-command-hook #'preview-it--stop-preview t)
   (remove-hook 'post-command-hook #'preview-it--start-preview t)
   (preview-it--stop-preview))
