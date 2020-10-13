@@ -8,11 +8,11 @@
 
 | Preview File | Preview Image |
 |:---|:---|
-| <img src="./etc/file.png"/> | <img src="./etc/image.png"/> |
+| <img src="./etc/file.png" width="450" height="200"/> | <img src="./etc/image.png" width="450" height="200"/> |
 
-| Preview Url | |
-|:---|:---|
-| <img src="./etc/url.png"/> | |
+| Preview Url |
+|:---|
+| <img src="./etc/url.png" width="450" height="200"/> |
 
 ## Usage
 
