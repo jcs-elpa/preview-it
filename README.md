@@ -31,6 +31,15 @@ your cursor is hovering anything that can be preview.
 M-x preview-it-mode
 ```
 
+To enabled it globally, use the following command instead.
+
+```
+M-x global-preview-it-mode
+```
+
+You can also called `preview-it` function directly to preview thing at the current
+cursor's position.
+
 ## Contribution
 
 If you would like to contribute to this project, you may either
