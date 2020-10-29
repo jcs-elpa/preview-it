@@ -113,6 +113,35 @@
     (desktop-dont-save . t))
   "Frame parameters used to create the frame.")
 
+;;; Entry
+
+(defun preview-it--enable ()
+  "Enable 'preview-it-mode'."
+  (add-hook 'pre-command-hook #'preview-it--stop-preview nil t)
+  (add-hook 'post-command-hook #'preview-it--start-preview nil t))
+
+(defun preview-it--disable ()
+  "Disable 'preview-it-mode'."
+  (remove-hook 'pre-command-hook #'preview-it--stop-preview t)
+  (remove-hook 'post-command-hook #'preview-it--start-preview t)
+  (preview-it--stop-preview))
+
+;;;###autoload
+(define-minor-mode preview-it-mode
+  "Minor mode 'preview-it-mode'."
+  :require 'preview-it
+  :group 'preview-it
+  (if preview-it-mode (preview-it--enable) (preview-it--disable)))
+
+(defun preview-it--turn-on-preview-it-mode ()
+  "Turn on the 'preview-it-mode'."
+  (preview-it-mode 1))
+
+;;;###autoload
+(define-globalized-minor-mode global-preview-it-mode
+  preview-it-mode preview-it--turn-on-preview-it-mode
+  :require 'preview-it)
+
 ;;; Util
 
 (defun preview-it--is-contain-list-string-regexp (in-list in-str)
@@ -312,35 +341,6 @@
 (defun preview-it--stop-preview ()
   "Trigger to stop previewing."
   (preview-it--frame-visible nil))
-
-;;; Entry
-
-(defun preview-it--enable ()
-  "Enable 'preview-it-mode'."
-  (add-hook 'pre-command-hook #'preview-it--stop-preview nil t)
-  (add-hook 'post-command-hook #'preview-it--start-preview nil t))
-
-(defun preview-it--disable ()
-  "Disable 'preview-it-mode'."
-  (remove-hook 'pre-command-hook #'preview-it--stop-preview t)
-  (remove-hook 'post-command-hook #'preview-it--start-preview t)
-  (preview-it--stop-preview))
-
-;;;###autoload
-(define-minor-mode preview-it-mode
-  "Minor mode 'preview-it-mode'."
-  :require 'preview-it
-  :group 'preview-it
-  (if preview-it-mode (preview-it--enable) (preview-it--disable)))
-
-(defun preview-it--turn-on-preview-it-mode ()
-  "Turn on the 'preview-it-mode'."
-  (preview-it-mode 1))
-
-;;;###autoload
-(define-globalized-minor-mode global-preview-it-mode
-  preview-it-mode preview-it--turn-on-preview-it-mode
-  :require 'preview-it)
 
 (provide 'preview-it)
 ;;; preview-it.el ends here
