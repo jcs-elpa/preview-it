@@ -306,8 +306,6 @@
   "Return possible preview information."
   (or (ffap-url-at-point) (ffap-file-at-point)))
 
-;; ./recipes/preview-it
-
 ;;;###autoload
 (defun preview-it ()
   "Preview thing at point."
