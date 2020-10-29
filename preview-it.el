@@ -113,7 +113,9 @@
     (desktop-dont-save . t))
   "Frame parameters used to create the frame.")
 
-;;; Entry
+;;
+;; (@* "Entry" )
+;;
 
 (defun preview-it--enable ()
   "Enable 'preview-it-mode'."
@@ -142,7 +144,9 @@
   preview-it-mode preview-it--turn-on-preview-it-mode
   :require 'preview-it)
 
-;;; Util
+;;
+;; (@* "Util" )
+;;
 
 (defun preview-it--is-contain-list-string-regexp (in-list in-str)
   "Check if IN-STR contain in any string in the IN-LIST."
@@ -186,7 +190,9 @@
      (setq mode-line-format nil)
      (progn ,@body)))
 
-;;; Frame
+;;
+;; (@* "Frame" )
+;;
 
 (defun preview-it--make-frame ()
   "Create frame if it hasn't created."
@@ -273,7 +279,9 @@
   "Calculate window height from current context."
   (min (frame-height) preview-it--max-line))
 
-;;; Url
+;;
+;; (@* "Url" )
+;;
 
 (defun preview-it--reset-request ()
   "Reset URL request."
@@ -290,7 +298,9 @@
         (shr-render-region (point-min) (point-max))))
     (preview-it--move-frame x y width height)))
 
-;;; Core
+;;
+;; (@* "Core" )
+;;
 
 (defun preview-it--get-info ()
   "Return possible preview information."
