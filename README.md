@@ -14,12 +14,12 @@ This package current supports viewing these items.
 * Image
 * Url/Link
 
-| Preview File | Preview Image |
-|:---|:---|
+| Preview File                                         | Preview Image                                         |
+|:-----------------------------------------------------|:------------------------------------------------------|
 | <img src="./etc/file.png" width="450" height="200"/> | <img src="./etc/image.png" width="450" height="200"/> |
 
-| Preview Url |
-|:---|
+| Preview Url                                         |
+|:----------------------------------------------------|
 | <img src="./etc/url.png" width="450" height="200"/> |
 
 ## Usage
