@@ -291,11 +291,11 @@
   "Callback after receiving URL DATA."
   (let (x y width height)
     (preview-it--with-preview-buffer
-      (insert data)
-      ;; TODO: The check here is fragile. Need a much dedicated method to
-      ;; detect html string.
-      (when (string-match-p "<!doctype html>" data)
-        (shr-render-region (point-min) (point-max))))
+     (insert data)
+     ;; TODO: The check here is fragile. Need a much dedicated method to
+     ;; detect html string.
+     (when (string-match-p "<!doctype html>" data)
+       (shr-render-region (point-min) (point-max))))
     (preview-it--move-frame x y width height)))
 
 ;;
@@ -318,16 +318,16 @@
              (setq show-frame-p t)
              (cond ((preview-it--is-contain-list-string-regexp preview-it--image-extensions info)
                     (preview-it--with-preview-buffer
-                      (when (ignore-errors (insert-image-file info))
-                        (let ((img-size (ignore-errors (image-size (image-get-display-property) :pixels))))
-                          (when img-size
-                            (setq width (/ (car img-size) (frame-char-width))
-                                  height (/ (cdr img-size) (frame-char-height))))))))
+                     (when (ignore-errors (insert-image-file info))
+                       (let ((img-size (when (fboundp 'image-size) (image-size (image-get-display-property) :pixels))))
+                         (when img-size
+                           (setq width (/ (car img-size) (frame-char-width))
+                                 height (/ (cdr img-size) (frame-char-height))))))))
                    ;; TODO: This method is very slow, need to find other replacement.
                    ((preview-it--text-file-p info)
                     (setq info (expand-file-name info))
                     (preview-it--with-preview-buffer
-                      (insert-file-contents info)))
+                     (insert-file-contents info)))
                    (t (setq show-frame-p nil))))
             ;; TODO: Not sure if there are other cases.
             ((string-match-p "http[s]*://" info)
