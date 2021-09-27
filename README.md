@@ -1,8 +1,9 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![CI](https://github.com/jcs-elpa/preview-it/actions/workflows/test.yml/badge.svg)](https://github.com/jcs-elpa/preview-it/actions/workflows/test.yml)
 
 # preview-it
 > Preview anything at point.
+
+[![CI](https://github.com/jcs-elpa/preview-it/actions/workflows/test.yml/badge.svg)](https://github.com/jcs-elpa/preview-it/actions/workflows/test.yml)
 
 Preview `file`, `image`, and `website` by moving cursor on top of target.
 
