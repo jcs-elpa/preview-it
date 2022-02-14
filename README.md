@@ -7,7 +7,7 @@
 
 Preview `file`, `image`, and `website` by moving cursor on top of target.
 
-## Features
+## 🏆 Features
 
 This package current supports viewing these items.
 
@@ -15,15 +15,15 @@ This package current supports viewing these items.
 * Image
 * Url/Link
 
-| Preview File                                         | Preview Image                                         |
-|:-----------------------------------------------------|:------------------------------------------------------|
-| <img src="./etc/file.png" width="450" height="200"/> | <img src="./etc/image.png" width="450" height="200"/> |
+| Preview File                 | Preview Image                 |
+|:-----------------------------|:------------------------------|
+| <img src="./etc/file.png" /> | <img src="./etc/image.png" /> |
 
-| Preview Url                                         |
-|:----------------------------------------------------|
-| <img src="./etc/url.png" width="450" height="200"/> |
+| Preview Url                 |
+|:----------------------------|
+| <img src="./etc/url.png" /> |
 
-## Usage
+## 🔨 Usage
 
 You can enable this feature by the following command. So it will work every time
 your cursor is hovering anything that can be preview.
