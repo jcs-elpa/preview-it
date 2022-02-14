@@ -208,11 +208,15 @@
                  :border-width 10
                  :background-color "#2A2D38"))
 
+(defun preview-it--next ()
+  "Hide tooltip after first post command."
+  (preview-it--stop-preview)
+  (remove-hook 'post-command-hook #'preview-it--next))
+
 (defun preview-it--post ()
-  "Global post command."
-  (unless (memq this-command '(preview-it))
-    (preview-it--stop-preview)
-    (remove-hook 'post-command-hook #'preview-it--post)))
+  "Register for next post command."
+  (add-hook 'post-command-hook #'preview-it--next)
+  (remove-hook 'post-command-hook #'preview-it--post))
 
 (defun preview-it--start-preview ()
   "Trigger to start previewing."
