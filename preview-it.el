@@ -56,7 +56,7 @@
   :link '(url-link :tag "Repository" "https://github.com/jcs-elpa/preview-it"))
 
 (defface preview-it-background
-  '((((background light)) :background "#B3B3B3")
+  '((((background light)) :background "#DADADA")
     (t :background "#272A36"))
   "Background color of the preview buffer."
   :group 'preview-it)
