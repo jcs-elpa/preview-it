@@ -56,8 +56,8 @@
   :link '(url-link :tag "Repository" "https://github.com/jcs-elpa/preview-it"))
 
 (defface preview-it-background
-  '((((background light)) :background "#DADADA")
-    (t :background "#272A36"))
+  '((((background light)) :background "#E9EAED")
+    (t :background "#2A2D38"))
   "Background color of the preview buffer."
   :group 'preview-it)
 
@@ -206,7 +206,7 @@
   "Show preview frame."
   (posframe-show preview-it--buffer-name :position (point)
                  :border-width 10
-                 :background-color "#2A2D38"))
+                 :background-color (face-background 'preview-it-background)))
 
 (defun preview-it--next ()
   "Hide tooltip after first post command."
