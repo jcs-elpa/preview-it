@@ -1,13 +1,13 @@
 ;;; preview-it.el --- Preview anything at point  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020  Shen, Jen-Chieh
+;; Copyright (C) 2020-2022  Shen, Jen-Chieh
 ;; Created date 2020-10-13 12:46:22
 
 ;; Author: Shen, Jen-Chieh <jcs090218@gmail.com>
 ;; Description: Preview anything at point.
 ;; Keyword: preview image path file
 ;; Version: 1.1.0
-;; Package-Requires: ((emacs "26.1") (request "0.3.0"))
+;; Package-Requires: ((emacs "26.1") (posframe "1.1.7") (request "0.3.0"))
 ;; URL: https://github.com/jcs-elpa/preview-it
 
 ;; This file is NOT part of GNU Emacs.
@@ -69,49 +69,14 @@
   "Name of the preview buffer.")
 
 (defvar preview-it--image-extensions
-  '(".jpg" ".png" ".jpeg" ".gif" ".bmp")
+  '("jpg" "png" "jpeg" "gif" "bmp" "svg")
   "List of image extensions.")
-
-(defvar preview-it--frame nil
-  "Frame use to display preview buffer.")
 
 (defvar preview-it--timer nil
   "Display timer after hovering.")
 
-(defvar preview-it--max-column nil
-  "Record the maximum column, which represent as buffer maximum width.")
-
-(defvar preview-it--max-line nil
-  "Record the maximum line, which represent as buffer maximum height.")
-
 (defvar preview-it--url-request nil
   "Request when browsing URL.")
-
-(defvar preview-it--frame-parameters
-  '((left . -1)
-    (no-focus-on-map . t)
-    (min-width  . 0)
-    (width  . 0)
-    (min-height  . 0)
-    (height  . 0)
-    (internal-border-width . 1)
-    (vertical-scroll-bars . nil)
-    (horizontal-scroll-bars . nil)
-    (right-fringe . 0)
-    (menu-bar-lines . 0)
-    (tool-bar-lines . 0)
-    (line-spacing . 0)
-    (unsplittable . t)
-    (undecorated . t)
-    (top . -1)
-    (visibility . nil)
-    (mouse-wheel-frame . nil)
-    (no-other-frame . t)
-    (inhibit-double-buffering . t)
-    (drag-internal-border . t)
-    (no-special-glyphs . t)
-    (desktop-dont-save . t))
-  "Frame parameters used to create the frame.")
 
 ;;
 ;; (@* "Entry" )
@@ -167,117 +132,11 @@
   "Check if PATH a file path."
   (and (file-exists-p path) (not (file-directory-p path))))
 
-(defun preview-it--max-col ()
-  "Return maximum column in buffer."
-  (let ((max 0))
-    (save-excursion
-      (goto-char (point-min))
-      (while (not (eobp))
-        (end-of-line)
-        (setq max (max (current-column) max))
-        (forward-line 1)))
-    max))
-
-(defun preview-it--max-line ()
-  "Return maximum line in buffer."
-  (line-number-at-pos (point-max) t))
-
 (defmacro preview-it--with-preview-buffer (&rest body)
   "Execute BODY inside preview buffer."
   (declare (indent 0) (debug t))
-  `(with-current-buffer preview-it--buffer-name
-     (erase-buffer)
-     (setq mode-line-format nil)
-     (progn ,@body)))
-
-;;
-;; (@* "Frame" )
-;;
-
-(defun preview-it--make-frame ()
-  "Create frame if it hasn't created."
-  (unless preview-it--frame
-    (let* ((after-make-frame-functions nil)
-           (before-make-frame-hook nil)
-           (buffer (get-buffer-create preview-it--buffer-name))
-           (params (append preview-it--frame-parameters
-                           `((name . "")
-                             (default-minibuffer-frame . ,(selected-frame))
-                             (minibuffer . ,(minibuffer-window))
-                             (left-fringe . 0)
-                             (right-fringe . 0)
-                             (cursor-type . nil)
-                             (background-color . ,(face-background 'preview-it-background nil t)))))
-           (window (display-buffer-in-child-frame
-                    buffer
-                    `((child-frame-parameters . ,params)))))
-      (setq preview-it--frame (window-frame window))
-      (set-window-dedicated-p window t))))
-
-(defun preview-it--move-frame (&optional x y width height)
-  "Move the frame to X, Y, WIDTH and HEIGHT position."
-  (preview-it--make-frame)
-  (when preview-it-mode
-    (let* ((fcw (frame-char-width)) (fch (frame-char-height))
-           (min-ln 1)
-           (abs-pixel-pos (save-excursion
-                            (move-to-window-line 0)
-                            (setq min-ln (line-number-at-pos))
-                            (window-absolute-pixel-position)))
-           (abs-pos-x (car abs-pixel-pos))
-           (abs-pos-y (cdr abs-pixel-pos))
-           (win-left (if abs-pos-x (- abs-pos-x fcw) 0))
-           (win-top (if abs-pos-y abs-pos-y 0))
-           (pixel-x x) (pixel-y y)
-           (cur-ln (- (line-number-at-pos) min-ln)) (cur-col (current-column))
-           (root-frame-width (* fcw (frame-width)))
-           (root-frame-height (* fch (frame-height)))
-           (vis-frame-width (- root-frame-width (+ win-left (* fcw cur-col))))
-           (vis-frame-height (- root-frame-height (+ win-top (* fch cur-ln))))
-           display-frame-width display-frame-height
-           diff-w diff-h)
-      (with-current-buffer preview-it--buffer-name
-        (setq preview-it--max-column (preview-it--max-col)
-              preview-it--max-line (preview-it--max-line)))
-      (if width
-          (setq display-frame-width width)
-        (setq display-frame-width (* fcw preview-it--max-column))
-        (setq width (preview-it--calculated-width)))
-      (if height
-          (setq display-frame-height height)
-        (setq display-frame-height (* fch preview-it--max-line))
-        (setq height (preview-it--calculated-height)))
-      (unless pixel-x
-        (setq cur-col (+ 2 cur-col)
-              pixel-x (+ (* fcw cur-col) win-left)))
-      (unless pixel-y (setq pixel-y (+ (* fch cur-ln) win-top)))
-      ;; Calculate position X
-      (when (< vis-frame-width display-frame-width)
-        (setq diff-w (- display-frame-width vis-frame-width)
-              pixel-x (max (- pixel-x diff-w) 0)))
-      ;; Calculate position Y
-      (when (< vis-frame-height display-frame-height)
-        (setq diff-h (- display-frame-height vis-frame-height)
-              pixel-y (max (- pixel-y diff-h) 0)))
-      (set-frame-parameter preview-it--frame 'left (round pixel-x))
-      (set-frame-parameter preview-it--frame 'top (round pixel-y))
-      (set-frame-parameter preview-it--frame 'width (round width))
-      (set-frame-parameter preview-it--frame 'height (round height))
-      (preview-it--frame-visible t))))
-
-(defun preview-it--frame-visible (vis)
-  "Make display frame either invisible/visible by VIS."
-  (when preview-it--frame
-    (if vis (make-frame-visible preview-it--frame)
-      (make-frame-invisible preview-it--frame))))
-
-(defun preview-it--calculated-width ()
-  "Calculate window width from current context."
-  (min (frame-width) preview-it--max-column))
-
-(defun preview-it--calculated-height ()
-  "Calculate window height from current context."
-  (min (frame-height) preview-it--max-line))
+  `(with-current-buffer (get-buffer-create preview-it--buffer-name)
+     (let (buffer-read-only) ,@body)))
 
 ;;
 ;; (@* "Url" )
@@ -289,14 +148,14 @@
 
 (cl-defun preview-it--receive-data (&key data &allow-other-keys)
   "Callback after receiving URL DATA."
-  (let (x y width height)
-    (preview-it--with-preview-buffer
-     (insert data)
-     ;; TODO: The check here is fragile. Need a much dedicated method to
-     ;; detect html string.
-     (when (string-match-p "<!doctype html>" data)
-       (shr-render-region (point-min) (point-max))))
-    (preview-it--move-frame x y width height)))
+  (preview-it--with-preview-buffer
+    (erase-buffer)
+    (insert data)
+    ;; TODO: The check here is fragile. Need a much dedicated method to
+    ;; detect html string.
+    (when (string-match-p "<!doctype html>" data)
+      (shr-render-region (point-min) (point-max))))
+  (preview-it--show))
 
 ;;
 ;; (@* "Core" )
@@ -306,49 +165,64 @@
   "Return possible preview information."
   (or (ffap-url-at-point) (ffap-file-at-point)))
 
+(defun preview-it--content-empty-p ()
+  "Return non-nil if content is empty."
+  (string-empty-p (preview-it--with-preview-buffer (buffer-string))))
+
 ;;;###autoload
 (defun preview-it ()
   "Preview thing at point."
   (interactive)
-  (let ((info (preview-it--get-info)) show-frame-p
-        x y width height)
-    (when info
-      (preview-it--make-frame)
-      (cond ((preview-it--is-file-p info)
-             (setq show-frame-p t)
-             (cond ((preview-it--is-contain-list-string-regexp preview-it--image-extensions info)
-                    (preview-it--with-preview-buffer
-                     (when (ignore-errors (insert-image-file info))
-                       (let ((img-size (when (fboundp 'image-size) (image-size (image-get-display-property) :pixels))))
-                         (when img-size
-                           (setq width (/ (car img-size) (frame-char-width))
-                                 height (/ (cdr img-size) (frame-char-height))))))))
-                   ;; TODO: This method is very slow, need to find other replacement.
-                   ((preview-it--text-file-p info)
-                    (setq info (expand-file-name info))
-                    (preview-it--with-preview-buffer
-                     (insert-file-contents info)))
-                   (t (setq show-frame-p nil))))
-            ;; TODO: Not sure if there are other cases.
-            ((string-match-p "http[s]*://" info)
-             (setq preview-it--url-request
-                   (request
-                     info
-                     :type "GET"
-                     :parser 'buffer-string
-                     :success 'preview-it--receive-data))))
-      (when show-frame-p (preview-it--move-frame x y width height)))))
+  (when-let ((info (preview-it--get-info)))
+    (preview-it--with-preview-buffer (erase-buffer))
+    (cond
+     ((preview-it--is-file-p info)  ; file
+      (cond ((member (file-name-extension info) preview-it--image-extensions)
+             (let ((inhibit-message t) message-log-max)
+               (preview-it--with-preview-buffer
+                 (ignore-errors (insert-image-file info))
+                 (image-mode))))
+            ;; TODO: This method is very slow, need to find other replacement.
+            ((preview-it--text-file-p info)
+             (setq info (expand-file-name info))
+             (preview-it--with-preview-buffer
+               (insert-file-contents info)
+               (let ((buffer-file-name info)) (delay-mode-hooks (set-auto-mode)))
+               (ignore-errors (font-lock-ensure))))))
+     ;; TODO: Not sure if there are other cases.
+     ((string-match-p "http[s]*://" info)  ; request
+      (setq preview-it--url-request
+            (request
+              info
+              :type "GET"
+              :parser 'buffer-string
+              :success 'preview-it--receive-data))))
+    (unless (preview-it--content-empty-p)
+      (preview-it--show)
+      (add-hook 'post-command-hook #'preview-it--post))))
+
+(defun preview-it--show ()
+  "Show preview frame."
+  (posframe-show preview-it--buffer-name :position (point)
+                 :border-width 10
+                 :background-color "#2A2D38"))
+
+(defun preview-it--post ()
+  "Global post command."
+  (unless (memq this-command '(preview-it))
+    (preview-it--stop-preview)
+    (remove-hook 'post-command-hook #'preview-it--post)))
 
 (defun preview-it--start-preview ()
   "Trigger to start previewing."
-  (preview-it--frame-visible nil)
+  (preview-it--stop-preview)
   (preview-it--reset-request)
   (preview-it--kill-timer preview-it--timer)
-  (setq preview-it--timer (run-with-timer preview-it-delay nil #'preview-it)))
+  (setq preview-it--timer (run-with-idle-timer preview-it-delay nil #'preview-it)))
 
 (defun preview-it--stop-preview ()
   "Trigger to stop previewing."
-  (preview-it--frame-visible nil))
+  (posframe-hide preview-it--buffer-name))
 
 (provide 'preview-it)
 ;;; preview-it.el ends here
