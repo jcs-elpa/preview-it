@@ -46,6 +46,7 @@
 (require 'shr)
 (require 'image-mode)
 
+(require 'posframe)
 (require 'request)
 
 (defgroup preview-it nil
