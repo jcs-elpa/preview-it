@@ -136,7 +136,7 @@
   "Execute BODY inside preview buffer."
   (declare (indent 0) (debug t))
   `(with-current-buffer (get-buffer-create preview-it--buffer-name)
-     (let (buffer-read-only) ,@body)))
+     (let ((inhibit-read-only t)) ,@body)))
 
 ;;
 ;; (@* "Url" )
