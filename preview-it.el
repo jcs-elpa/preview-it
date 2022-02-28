@@ -226,7 +226,7 @@
       (preview-it--mute-apply (preview-it--render-file path)))
      ;; TODO: Not sure if there are other cases.
      ((string-match-p "http[s]*://" path)  ; request
-      (preview-it--render-url)))
+      (preview-it--render-url path)))
     (unless (preview-it--content-empty-p)
       (preview-it--show)
       (add-hook 'post-command-hook #'preview-it--post))))
