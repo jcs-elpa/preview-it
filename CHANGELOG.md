@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
 
-## 1.2.0 (Unreleased)
+## 1.1.1 (Unreleased)
 > Released N/A
 
 * Add markdown render capability (c4a50fe77b7fd347e3b3e2992e6a50a2fb9cf341)
