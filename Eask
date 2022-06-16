@@ -2,6 +2,9 @@
          "1.1.0"
          "Preview anything at point")
 
+(website-url "https://github.com/jcs-elpa/preview-it")
+(keywords "preview" "image" "path" "file")
+
 (package-file "preview-it.el")
 
 (source "melpa")
