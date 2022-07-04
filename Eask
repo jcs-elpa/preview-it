@@ -3,7 +3,7 @@
          "Preview anything at point")
 
 (website-url "https://github.com/jcs-elpa/preview-it")
-(keywords "preview" "image" "path" "file")
+(keywords "convenience" "preview" "image" "path" "file")
 
 (package-file "preview-it.el")
 
