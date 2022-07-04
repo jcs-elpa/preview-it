@@ -7,7 +7,7 @@
 ;; URL: https://github.com/jcs-elpa/preview-it
 ;; Version: 1.1.0
 ;; Package-Requires: ((emacs "26.1") (posframe "1.1.7") (request "0.3.0") (gh-md "0.1.1"))
-;; Keywords: preview image path file
+;; Keywords: convenience preview image path file
 
 ;; This file is NOT part of GNU Emacs.
 
