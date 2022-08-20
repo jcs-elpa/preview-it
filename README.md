@@ -16,13 +16,13 @@ This package current supports viewing these items.
 * Image
 * Url/Link
 
-| Preview File                 | Preview Image                 |
-|:-----------------------------|:------------------------------|
-| <img src="./etc/file.png" /> | <img src="./etc/image.png" /> |
+| Preview File       | Preview Image        |
+|:-------------------|:---------------------|
+| ![](./etc/url.png) | ![](./etc/image.png) |
 
-| Preview Url                 |
-|:----------------------------|
-| <img src="./etc/url.png" /> |
+| Preview Url        | Color                |
+|:-------------------|:---------------------|
+| ![](./etc/url.png) | ![](./etc/color.png) |
 
 ## 🔨 Usage
 
