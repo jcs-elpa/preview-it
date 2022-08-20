@@ -9,6 +9,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 > Released N/A
 
 * Add markdown render capability (c4a50fe77b7fd347e3b3e2992e6a50a2fb9cf341)
+* Add color preview (#2)
 
 ## 1.1.0
 > Released Oct 29, 2020
