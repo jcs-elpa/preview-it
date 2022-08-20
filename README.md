@@ -16,13 +16,13 @@ This package current supports viewing these items.
 * Image
 * Url/Link
 
-| Preview File                 | Preview Image                 |
-|:-----------------------------|:------------------------------|
-| <img src="./etc/file.png" /> | <img src="./etc/image.png" /> |
+| Preview File       | Preview Image        |
+|:-------------------|:---------------------|
+| ![](./etc/url.png) | ![](./etc/image.png) |
 
-| Preview Url                 |
-|:----------------------------|
-| <img src="./etc/url.png" /> |
+| Preview Url        | Color                |
+|:-------------------|:---------------------|
+| ![](./etc/url.png) | ![](./etc/color.png) |
 
 ## 🔨 Usage
 
@@ -41,6 +41,18 @@ M-x global-preview-it-mode
 
 You can also called `preview-it` function directly to preview thing at the current
 cursor's position.
+
+## 🔧 Customization
+
+#### 🧪 Variables
+
+* `preview-it-delay` - Seconds delay to show preview.
+* `preview-it-render-md` - Set to non-nil, render markdown file.
+* `preview-it-color-text` - String to display color.
+
+#### 🧪 Face
+
+* `preview-it-background` - Background color of the preview buffer.
 
 ## Contribute
 
