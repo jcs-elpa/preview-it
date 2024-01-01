@@ -1,6 +1,6 @@
 ;;; preview-it.el --- Preview anything at point  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020-2022  Shen, Jen-Chieh
+;; Copyright (C) 2020-2024  Shen, Jen-Chieh
 ;; Created date 2020-10-13 12:46:22
 
 ;; Author: Shen, Jen-Chieh <jcs090218@gmail.com>
