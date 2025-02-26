@@ -12,9 +12,9 @@ Preview `file`, `image`, and `website` by moving cursor on top of target.
 
 This package current supports viewing these items.
 
-* File (absolute/relative)
-* Image
-* Url/Link
+- File (absolute/relative)
+- Image
+- Url/Link
 
 | Preview File       | Preview Image        |
 |:-------------------|:---------------------|
