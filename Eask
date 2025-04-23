@@ -1,3 +1,5 @@
+;; -*- mode: eask; lexical-binding: t -*-
+
 (package "preview-it"
          "1.1.0"
          "Preview anything at point")
